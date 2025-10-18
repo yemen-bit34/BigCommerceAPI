@@ -1,4 +1,3 @@
-// webpack.config.js
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
@@ -13,11 +12,16 @@ module.exports = {
   devtool: "eval-source-map",
   devServer: {
     watchFiles: ["./src/template.html"],
+    port: 8080,
+    hot: true,
+    open: true,
+    // No proxy needed - frontend calls backend at http://localhost:3000 directly
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: "./src/template.html",
     }),
+    // ❌ REMOVED Dotenv and DefinePlugin - no secrets in frontend!
   ],
   module: {
     rules: [

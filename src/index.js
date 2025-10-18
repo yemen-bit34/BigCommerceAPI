@@ -1,4 +1,4 @@
 import "./styles.css";
-import {greeting} from "./greeting.js";
+import { showOrders } from "./components/showOrders";
 
-document.querySelector("#greeting").innerHTML = greeting;
+showOrders();
