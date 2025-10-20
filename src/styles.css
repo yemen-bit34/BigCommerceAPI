@@ -1,119 +1,95 @@
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f9fafc;
+  font-family: "Inter", system-ui, sans-serif;
+  background-color: #f7f9fb;
   margin: 0;
   padding: 40px;
-  color: #333;
+  display: flex;
+  justify-content: center;
+}
+
+#app {
+  width: 90%;
+  max-width: 1100px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 30px 40px;
 }
 
 h1 {
   text-align: center;
-  color: #222;
-  margin-bottom: 30px;
   font-size: 28px;
+  margin-bottom: 30px;
+  color: #1a1a1a;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-th,
-td {
-  border: 1px solid #e0e0e0;
-  padding: 12px 16px;
-  text-align: left;
-  vertical-align: top;
-}
-
-th {
-  background-color: #f5f7fa;
-  font-weight: 600;
-  color: #333;
-}
-
-tr:nth-child(even) {
-  background-color: #fafafa;
-}
-
-tr:hover {
-  background-color: #f0f4ff;
-  transition: background-color 0.2s;
+/* Action bar */
+div > button {
+  margin: 0 8px 20px 0;
 }
 
 button {
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 8px 14px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+  transition: all 0.2s ease-in-out;
 }
 
 button:hover {
-  background-color: #0056d2;
+  background-color: #0056b3;
+  transform: translateY(-1px);
 }
 
 button:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
-button + button {
-  margin-left: 8px;
+button.approve-btn {
+  background-color: #009688;
 }
 
-img {
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  margin-right: 8px;
+button.approve-btn:hover {
+  background-color: #00796b;
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th {
+  background-color: #f1f3f6;
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #333;
+  font-size: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
   vertical-align: middle;
+  color: #444;
 }
 
+tr:last-child td {
+  border-bottom: none;
+}
+
+/* Empty state */
 p {
   text-align: center;
-  font-size: 18px;
-  color: #555;
-  margin: 20px 0;
-}
-
-#app {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-/* ✅ Approve All button */
-#app > button:first-of-type {
-  display: block;
-  margin: 0 auto 20px;
-  background-color: #28a745;
-}
-
-#app > button:first-of-type:hover {
-  background-color: #1e7e34;
-}
-
-/* ✅ Reload button */
-#app button:last-of-type {
-  display: block;
-  margin: 20px auto;
-  background-color: #17a2b8;
-}
-
-#app button:last-of-type:hover {
-  background-color: #117a8b;
-}
-
-/* ✅ Approved row (optional if you keep rows visible after approve) */
-.approved {
-  background-color: #e6f9ec !important;
-}
-
-.approved td {
-  color: #256029;
-  font-weight: 600;
+  font-size: 16px;
+  color: #666;
 }
