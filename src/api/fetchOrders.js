@@ -16,7 +16,7 @@
 //   }
 // };
 // Changed to call backend proxy server to avoid CORS
-export const fetchAPI = async () => {
+export const fetchOrders = async () => {
   const url = "http://localhost:3000/api/orders"; // proxy route to backend server
   try {
     const response = await fetch(url);

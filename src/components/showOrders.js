@@ -1,128 +1,120 @@
-import { fetchAPI } from "../api/bigCommerce";
-import { processData } from "../processing/data";
-
-export async function showOrders() {
-  const app = document.createElement("div");
-  app.id = "app";
-  document.body.appendChild(app);
+export function renderOrders(app, orders, onReload) {
+  app.innerHTML = ""; // clear old content
 
   const title = document.createElement("h1");
   title.textContent = "BigCommerce Orders";
   app.appendChild(title);
 
-  const btn = document.createElement("button");
-  btn.textContent = "Show Orders";
-  btn.style.padding = "10px 20px";
-  btn.style.cursor = "pointer";
-  btn.style.marginBottom = "20px";
-  app.appendChild(btn);
+  // If no orders at all
+  if (!orders.length) {
+    const msg = document.createElement("p");
+    msg.textContent = "No orders available.";
+    app.appendChild(msg);
 
-  const container = document.createElement("div");
-  container.id = "orders-container";
-  app.appendChild(container);
+    const reloadBtn = document.createElement("button");
+    reloadBtn.textContent = "Reload Orders";
+    reloadBtn.style.padding = "10px 20px";
+    reloadBtn.style.cursor = "pointer";
+    reloadBtn.onclick = onReload;
+    app.appendChild(reloadBtn);
+    return;
+  }
 
-  // Only create one Approve All button
+  // Create Approve All button
   const approveAllBtn = document.createElement("button");
   approveAllBtn.textContent = "Approve All Orders";
   approveAllBtn.style.padding = "10px 20px";
   approveAllBtn.style.cursor = "pointer";
   approveAllBtn.style.marginBottom = "20px";
-  approveAllBtn.style.display = "none"; // hidden until orders load
-  app.insertBefore(approveAllBtn, container);
+  app.appendChild(approveAllBtn);
 
-  btn.addEventListener("click", async () => {
-    container.innerHTML = "<p>Loading orders...</p>";
+  const table = document.createElement("table");
+  table.style.width = "100%";
+  table.style.borderCollapse = "collapse";
+  table.style.marginTop = "10px";
 
-    try {
-      const response = await fetchAPI();
-      const orders = processData(response);
+  const header = `
+    <tr style="background:#f2f2f2;">
+      <th style="border:1px solid #ddd;padding:8px;">Order ID</th>
+      <th style="border:1px solid #ddd;padding:8px;">Customer</th>
+      <th style="border:1px solid #ddd;padding:8px;">Products</th>
+      <th style="border:1px solid #ddd;padding:8px;">Total</th>
+      <th style="border:1px solid #ddd;padding:8px;">Status</th>
+      <th style="border:1px solid #ddd;padding:8px;">Date</th>
+      <th style="border:1px solid #ddd;padding:8px;">Action</th>
+    </tr>
+  `;
+  table.innerHTML = header;
 
-      if (!orders.length) {
-        container.innerHTML = "<p>No orders found.</p>";
-        approveAllBtn.style.display = "none";
-        return;
+  const tbody = document.createElement("tbody");
+  table.appendChild(tbody);
+
+  // Render each order
+  orders.forEach((order) => {
+    const row = document.createElement("tr");
+
+    const productCells = order.products
+      .map(
+        (p) =>
+          `<div style="margin-bottom:5px;">
+             ${p.image ? `<img src="${p.image}" width="50"/> ` : ""}
+             ${p.name} (x${p.quantity})
+           </div>`
+      )
+      .join("");
+
+    row.innerHTML = `
+      <td style="border:1px solid #ddd;padding:8px;">${order.id}</td>
+      <td style="border:1px solid #ddd;padding:8px;">${
+        order.customer.name
+      }<br/>${order.customer.email}</td>
+      <td style="border:1px solid #ddd;padding:8px;">${productCells}</td>
+      <td style="border:1px solid #ddd;padding:8px;">$${order.total.toFixed(
+        2
+      )}</td>
+      <td style="border:1px solid #ddd;padding:8px;" class="status-cell">${
+        order.status
+      }</td>
+      <td style="border:1px solid #ddd;padding:8px;">${order.date}</td>
+      <td style="border:1px solid #ddd;padding:8px;"></td>
+    `;
+
+    const approveBtn = document.createElement("button");
+    approveBtn.textContent = "Approve";
+    approveBtn.style.padding = "6px 12px";
+    approveBtn.style.cursor = "pointer";
+    approveBtn.addEventListener("click", () => {
+      order.status = "Approved";
+      row.remove(); // remove from table
+
+      // if all rows removed -> show reload
+      if (tbody.children.length === 0) {
+        app.innerHTML = "<p>No orders available.</p>";
+        const reloadBtn = document.createElement("button");
+        reloadBtn.textContent = "Reload Orders";
+        reloadBtn.style.padding = "10px 20px";
+        reloadBtn.style.cursor = "pointer";
+        reloadBtn.onclick = onReload;
+        app.appendChild(reloadBtn);
       }
+    });
 
-      const table = document.createElement("table");
-      table.style.borderCollapse = "collapse";
-      table.style.width = "100%";
-      table.style.marginTop = "15px";
+    row.lastElementChild.appendChild(approveBtn);
+    tbody.appendChild(row);
+  });
 
-      const thead = document.createElement("thead");
-      const headerRow = document.createElement("tr");
-      ["Order ID", "Customer", "Total", "Status", "Date", "Action"].forEach(
-        (header) => {
-          const th = document.createElement("th");
-          th.textContent = header;
-          th.style.border = "1px solid #ddd";
-          th.style.padding = "8px";
-          th.style.backgroundColor = "#f2f2f2";
-          headerRow.appendChild(th);
-        }
-      );
-      thead.appendChild(headerRow);
-      table.appendChild(thead);
+  app.appendChild(table);
 
-      const tbody = document.createElement("tbody");
-      orders.forEach((order) => {
-        const row = document.createElement("tr");
+  // Approve all button logic
+  approveAllBtn.addEventListener("click", () => {
+    tbody.innerHTML = ""; // clear all rows
+    app.innerHTML = "<p>All orders approved!</p>";
 
-        // Table cells
-        const cells = [
-          order.id,
-          order.customer.name,
-          `$${order.total.toFixed(2)}`,
-          order.status,
-          new Date(order.date_created).toLocaleDateString(),
-        ];
-
-        cells.forEach((val) => {
-          const td = document.createElement("td");
-          td.textContent = val;
-          td.style.border = "1px solid #ddd";
-          td.style.padding = "8px";
-          row.appendChild(td);
-        });
-
-        // Add approve button
-        const actionTd = document.createElement("td");
-        const approveBtn = document.createElement("button");
-        approveBtn.textContent = "Approve";
-        approveBtn.style.padding = "6px 12px";
-        approveBtn.style.cursor = "pointer";
-
-        approveBtn.addEventListener("click", () => {
-          console.log(`Approving order ID: ${order.id}`);
-          // Simulate approving the order
-          order.status = "Approved";
-          row.cells[3].textContent = order.status;
-          approveBtn.disabled = true;
-        });
-
-        actionTd.appendChild(approveBtn);
-        row.appendChild(actionTd);
-        tbody.appendChild(row);
-      });
-
-      table.appendChild(tbody);
-      container.innerHTML = "";
-      container.appendChild(table);
-      approveAllBtn.style.display = "inline-block";
-
-      // Approve all button logic
-      approveAllBtn.onclick = () => {
-        orders.forEach((order, index) => {
-          order.status = "Approved";
-          tbody.rows[index].cells[3].textContent = "Approved";
-          const approveBtn = tbody.rows[index].cells[5].querySelector("button");
-          if (approveBtn) approveBtn.disabled = true;
-        });
-        console.log("All orders approved!");
-      };
-    } catch (err) {
-      console.error("Error loading orders:", err);
-      container.innerHTML = `<p style="color:red;">Failed to load orders: ${err.message}</p>`;
-      approveAllBtn.style.display = "none";
-    }
+    const reloadBtn = document.createElement("button");
+    reloadBtn.textContent = "Reload Orders";
+    reloadBtn.style.padding = "10px 20px";
+    reloadBtn.style.cursor = "pointer";
+    reloadBtn.onclick = onReload;
+    app.appendChild(reloadBtn);
   });
 }
