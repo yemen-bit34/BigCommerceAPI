@@ -16,16 +16,24 @@
 //   }
 // };
 // Changed to call backend proxy server to avoid CORS
-export const fetchOrders = async () => {
-  const url = "http://localhost:3000/api/orders"; // proxy route to backend server
+const API_BASE = "http://localhost:3000/api";
+
+export async function fetchOrders(storeId) {
+  const url = `${API_BASE}/${storeId}/orders`;
+
   try {
     const response = await fetch(url);
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const error = await response.json();
+      throw new Error(
+        error.details || `HTTP error! status: ${response.status}`
+      );
     }
+
     return await response.json();
   } catch (error) {
-    console.error("Fetch API Error: ", error);
-    throw error; // rethrow for calling code
+    console.error("Fetch orders error:", error);
+    throw error;
   }
-};
+}
