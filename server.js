@@ -1,25 +1,52 @@
 const express = require("express");
 const fetch = require("node-fetch").default;
-// import fetch from "node-fetch";
+const helmet = require("helmet");
+const path = require("path");
+const favicon = require("serve-favicon");
+
+app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 
 const app = express();
 const PORT = 3000;
-const stores = {}; // store connected shops in memory
+const stores = {}; // In-memory store data
 
-// CORS
+// Use Helmet early for security headers including CSP
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      fontSrc: ["'self'", "https://r2cdn.perplexity.ai"],
+      connectSrc: [
+        "'self'",
+        "http://localhost:3000",
+        "https://api.bigcommerce.com",
+      ],
+      imgSrc: ["'self'", "data:"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      objectSrc: ["'none'"],
+    },
+  })
+);
+
+// CORS middleware allowing All origins and basic headers
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS, DELETE");
   res.header("Access-Control-Allow-Headers", "Content-Type");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
+  if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
 
+// Parse JSON bodies
 app.use(express.json());
 
-// 1️⃣ Connect store
+// Root route to avoid 404 with no CSP header error
+app.get("/", (req, res) => {
+  res.send("Backend API running");
+});
+
+// 1️⃣ Connect a new store
 app.post("/api/connect", (req, res) => {
   const { storeHash, apiToken, name } = req.body;
   if (!storeHash || !apiToken)
@@ -31,7 +58,7 @@ app.post("/api/connect", (req, res) => {
   res.json({ success: true, storeId, name: stores[storeId].name });
 });
 
-// 2️⃣ List stores
+// 2️⃣ List all connected stores
 app.get("/api/stores", (req, res) => {
   const list = Object.entries(stores).map(([id, s]) => ({
     storeId: id,
@@ -40,7 +67,7 @@ app.get("/api/stores", (req, res) => {
   res.json(list);
 });
 
-// 3️⃣ Fetch orders for a specific store
+// 3️⃣ Fetch orders for specific store
 app.get("/api/:storeId/orders", async (req, res) => {
   const { storeId } = req.params;
   const store = stores[storeId];
@@ -75,11 +102,10 @@ app.get("/api/:storeId/orders", async (req, res) => {
   }
 });
 
-// 4️⃣ Approve single order (update status to "Completed")
+// 4️⃣ Approve single order (set status to 'Completed')
 app.put("/api/:storeId/orders/:orderId/approve", async (req, res) => {
   const { storeId, orderId } = req.params;
   const store = stores[storeId];
-
   if (!store) return res.status(404).json({ error: "Unknown store" });
 
   const url = `https://api.bigcommerce.com/stores/${store.storeHash}/v2/orders/${orderId}`;
@@ -109,7 +135,7 @@ app.put("/api/:storeId/orders/:orderId/approve", async (req, res) => {
     res.json({ success: true, order: data });
   } catch (err) {
     console.error("❌ Backend error:", err);
-    res.status(500).json({ error: "Backend error", details: err.message });
+    res.status(500).json({ error: "Backend error" + err.status });
   }
 });
 
@@ -118,7 +144,6 @@ app.post("/api/:storeId/orders/approve-all", async (req, res) => {
   const { storeId } = req.params;
   const { orderIds } = req.body; // array of order IDs
   const store = stores[storeId];
-
   if (!store) return res.status(404).json({ error: "Unknown store" });
   if (!Array.isArray(orderIds) || orderIds.length === 0) {
     return res
@@ -128,7 +153,7 @@ app.post("/api/:storeId/orders/approve-all", async (req, res) => {
 
   const results = { success: [], failed: [] };
 
-  // Process all orders in parallel
+  // Process all approvals in parallel
   await Promise.all(
     orderIds.map(async (orderId) => {
       const url = `https://api.bigcommerce.com/stores/${store.storeHash}/v2/orders/${orderId}`;
@@ -140,7 +165,7 @@ app.post("/api/:storeId/orders/approve-all", async (req, res) => {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify({ status_id: 11 }), // 11 = Completed
+          body: JSON.stringify({ status_id: 11 }), // Completed
         });
 
         if (response.ok) {

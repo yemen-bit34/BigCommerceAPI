@@ -1,3 +1,5 @@
+import { showConfirm } from "./popupMessage";
+
 export function renderOrders(app, orders, callbacks) {
   const { onReload, onApprove, onApproveAll, onBackToStores } = callbacks;
 
@@ -116,23 +118,22 @@ export function renderOrders(app, orders, callbacks) {
 
   // Approve all orders
   approveAllBtn.addEventListener("click", async () => {
-    if (
-      !confirm(`Are you sure you want to approve all ${orders.length} orders?`)
-    ) {
-      return;
-    }
+    showConfirm(
+      `Are you sure you want to approve all ${orders.length} orders?`,
+      async () => {
+        approveAllBtn.disabled = true;
+        approveAllBtn.textContent = "Approving...";
 
-    approveAllBtn.disabled = true;
-    approveAllBtn.textContent = "Approving...";
+        const orderIds = orders.map((o) => o.id);
 
-    const orderIds = orders.map((o) => o.id);
-
-    try {
-      await onApproveAll(orderIds);
-    } catch (err) {
-      approveAllBtn.disabled = false;
-      approveAllBtn.textContent = "✅ Approve All Orders";
-    }
+        try {
+          await onApproveAll(orderIds);
+        } catch (err) {
+          approveAllBtn.disabled = false;
+          approveAllBtn.textContent = "✅ Approve All Orders";
+        }
+      }
+    );
   });
 }
 

@@ -24,3 +24,16 @@ export async function fetchStores() {
 
   return await response.json();
 }
+
+export async function removeStore(storeId) {
+  const response = await fetch(`${API_BASE}/stores/${storeId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to remove store");
+  }
+
+  return await response.json();
+}
