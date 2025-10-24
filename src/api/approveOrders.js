@@ -1,7 +1,9 @@
-const API_BASE = "http://localhost:3000/api";
+// src/api/approveOrders.js
+const API_BASE =
+  (typeof window !== "undefined" && window.__API_BASE__) || "/api";
 
 export async function approveOrder(storeId, orderId) {
-  const url = `${API_BASE}/${storeId}/orders/${orderId}/approve`;
+  const url = `${API_BASE}/stores/${storeId}/orders/${orderId}/approve`;
 
   try {
     const response = await fetch(url, {
@@ -9,7 +11,7 @@ export async function approveOrder(storeId, orderId) {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json().catch(() => ({}));
       throw new Error(error.details || "Failed to approve order");
     }
 
@@ -21,7 +23,7 @@ export async function approveOrder(storeId, orderId) {
 }
 
 export async function approveAllOrders(storeId, orderIds) {
-  const url = `${API_BASE}/${storeId}/orders/approve-all`;
+  const url = `${API_BASE}/stores/${storeId}/orders/approve-all`;
 
   try {
     const response = await fetch(url, {
@@ -31,7 +33,7 @@ export async function approveAllOrders(storeId, orderIds) {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json().catch(() => ({}));
       throw new Error(error.error || "Failed to approve orders");
     }
 
