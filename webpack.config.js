@@ -15,13 +15,19 @@ module.exports = {
     port: 8080,
     hot: true,
     open: true,
-    // No proxy needed - frontend calls backend at http://localhost:3000 directly
+    // Proxy /api requests to backend running on localhost:3000
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        secure: false,
+        changeOrigin: true,
+      },
+    },
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: "./src/template.html",
     }),
-    // ❌ REMOVED Dotenv and DefinePlugin - no secrets in frontend!
   ],
   module: {
     rules: [

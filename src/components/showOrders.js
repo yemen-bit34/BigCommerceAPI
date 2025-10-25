@@ -104,14 +104,18 @@ export function renderOrders(app, orders, callbacks) {
   app.querySelectorAll(".approve-btn").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const orderId = btn.getAttribute("data-id");
+      const prevText = btn.textContent;
       btn.disabled = true;
       btn.textContent = "Approving...";
 
       try {
         await onApprove(orderId);
+        // If approval succeeds, parent will refresh the order list via loadOrders so no need to change the button text here.
       } catch (err) {
+        // Restore UI state on failure
         btn.disabled = false;
-        btn.textContent = "Approve";
+        btn.textContent = prevText || "Approve";
+        // Do not swallow the error — parent may show a popup. If parent already handled it, this ensures the button gets restored.
       }
     });
   });
@@ -122,15 +126,17 @@ export function renderOrders(app, orders, callbacks) {
       `Are you sure you want to approve all ${orders.length} orders?`,
       async () => {
         approveAllBtn.disabled = true;
+        const prevText = approveAllBtn.textContent;
         approveAllBtn.textContent = "Approving...";
 
         const orderIds = orders.map((o) => o.id);
 
         try {
           await onApproveAll(orderIds);
+          // parent will refresh
         } catch (err) {
           approveAllBtn.disabled = false;
-          approveAllBtn.textContent = "✅ Approve All Orders";
+          approveAllBtn.textContent = prevText || "✅ Approve All Orders";
         }
       }
     );

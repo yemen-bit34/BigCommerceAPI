@@ -156,13 +156,14 @@ async function loadOrders(storeId) {
       onApprove: async (orderId) => {
         try {
           await approveOrder(storeId, orderId);
-          loadOrders(storeId); // Refresh after approval
+          await loadOrders(storeId); // Refresh after approval
         } catch (err) {
           showError(
             `Failed to approve order: ${
               err && err.message ? err.message : String(err)
             }`
           );
+          throw err; // rethrow so the component can catch and restore UI state
         }
       },
       onApproveAll: async (orderIds) => {
@@ -171,13 +172,14 @@ async function loadOrders(storeId) {
           showInfo(
             `Approved: ${results.success.length}, Failed: ${results.failed.length}`
           );
-          loadOrders(storeId); // Refresh after bulk approval
+          await loadOrders(storeId); // Refresh after bulk approval
         } catch (err) {
           showError(
             `Failed to approve all orders: ${
               err && err.message ? err.message : String(err)
             }`
           );
+          throw err; // rethrow so the component can restore UI
         }
       },
       onBackToStores: () => init(),
