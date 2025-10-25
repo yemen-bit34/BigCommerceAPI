@@ -1,4 +1,4 @@
-import "whatwg-fetch";
+import "cross-fetch/polyfill";
 import "./styles.css";
 import { connectStore, fetchStores, removeStore } from "./api/connect";
 import { fetchOrders } from "./api/fetchOrders";

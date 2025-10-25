@@ -11,6 +11,7 @@
     "lint": "eslint . || true"
   },
   "dependencies": {
+    "cross-fetch": "^4.1.0",
     "express": "^4.18.2",
     "helmet": "^7.2.0",
     "morgan": "^1.10.0",
